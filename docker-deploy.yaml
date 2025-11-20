@@ -1,0 +1,52 @@
+---
+- name: Deploy Portfolio WebApp to All VMs
+  hosts: all
+  become: yes
+
+  tasks:
+
+    # --- INSTALL DOCKER ---
+
+    - name: Install Docker on Ubuntu
+      when: ansible_os_family == "Debian"
+      apt:
+        name: docker.io
+        state: present
+        update_cache: yes
+
+    - name: Install Docker on CentOS
+      when: ansible_os_family == "RedHat"
+      shell: |
+        curl -fsSL https://get.docker.com/ | sh
+
+
+    - name: Enable and Start Docker
+      service:
+        name: docker
+        state: started
+        enabled: yes
+
+
+    # --- DEPLOY IMAGE ---
+
+    - name: Copy docker tarball to server
+      copy:
+        src: "{{ playbook_dir }}/portfolio-webapp.tar"
+        dest: /tmp/portfolio-webapp.tar
+
+    - name: Load docker image
+      community.docker.docker_image:
+        source: load
+        load_path: /tmp/portfolio-webapp.tar
+
+
+    # --- RUN CONTAINER ---
+
+    - name: Run portfolio-webapp container
+      community.docker.docker_container:
+        name: portfolio-webapp
+        image: portfolio-webapp:latest
+        restart_policy: always
+        state: started
+        ports:
+          - "80:80"

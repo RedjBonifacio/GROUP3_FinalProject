@@ -1,0 +1,12 @@
+[local]
+192.168.56.101 ansible_user=redjbonifacio ansible_password=12345 ansible_become_password=12345
+
+[ubuntu]
+192.168.56.102 ansible_user=redj1bonifacio ansible_password=12345 ansible_become_password=12345
+192.168.56.103 ansible_user=redj2bonifacio ansible_password=12345 ansible_become_password=12345
+
+[centos]
+192.168.56.104 ansible_user=rdjbnfc ansible_password=redjbonifacio ansible_become_password=redjbonifacio
+
+[all:vars]
+ansible_python_interpreter=/usr/bin/python3
