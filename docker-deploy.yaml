@@ -5,7 +5,9 @@
 
   tasks:
 
-    # --- INSTALL DOCKER ---
+    # ------------------------------
+    # 1) INSTALL DOCKER
+    # ------------------------------
 
     - name: Install Docker on Ubuntu
       when: ansible_os_family == "Debian"
@@ -19,34 +21,43 @@
       shell: |
         curl -fsSL https://get.docker.com/ | sh
 
-
-    - name: Enable and Start Docker
+    - name: Enable & Start Docker
       service:
         name: docker
         state: started
         enabled: yes
 
-
-    # --- DEPLOY IMAGE ---
+    # ------------------------------
+    # 2) COPY TAR TO REMOTE SERVER
+    # ------------------------------
 
     - name: Copy docker tarball to server
       copy:
-        src: "{{ playbook_dir }}/portfolio-webapp.tar"
+        src: portfolio-webapp.tar
         dest: /tmp/portfolio-webapp.tar
+        mode: '0644'
 
-    - name: Load docker image
-      community.docker.docker_image:
-        source: load
-        load_path: /tmp/portfolio-webapp.tar
+    # ------------------------------
+    # 3) LOAD DOCKER IMAGE
+    # ------------------------------
 
+    - name: Load docker image from tarball
+      shell: docker load -i /tmp/portfolio-webapp.tar
+      register: load_output
 
-    # --- RUN CONTAINER ---
+    - debug:
+        msg: "{{ load_output.stdout }}"
 
-    - name: Run portfolio-webapp container
-      community.docker.docker_container:
-        name: portfolio-webapp
-        image: portfolio-webapp:latest
-        restart_policy: always
-        state: started
-        ports:
-          - "80:80"
+    # ------------------------------
+    # 4) REMOVE OLD CONTAINER
+    # ------------------------------
+
+    - name: Remove old container if exists
+      shell: docker rm -f portfolio-webapp || true
+
+    # ------------------------------
+    # 5) RUN NEW CONTAINER
+    # ------------------------------
+
+    - name: Run the portfolio webapp container
+      shell: docker run -d --name portfolio-webapp -p 80:80 portfolio-webapp:latest

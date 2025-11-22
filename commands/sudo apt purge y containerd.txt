@@ -1,0 +1,13 @@
+sudo apt purge -y containerd containerd.io
+sudo apt autoremove -y
+
+sudo apt --fix-broken install -y
+sudo apt update
+
+curl -fsSL https://get.docker.com | sudo sh
+
+sudo systemctl start docker
+sudo systemctl enable docker
+docker --version
+
+
